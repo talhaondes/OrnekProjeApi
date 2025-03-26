@@ -1,0 +1,6 @@
+@ProjeApiUIAPi_HostAddress = http://localhost:5137
+
+GET {{ProjeApiUIAPi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

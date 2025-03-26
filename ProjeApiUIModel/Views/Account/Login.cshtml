@@ -1,0 +1,21 @@
+﻿@model LoginViewModel
+
+<h2>Giriş Yap</h2>
+
+<form asp-action="Login" method="post">
+    <div>
+        <label>Kullanıcı Adı</label>
+        <input asp-for="UserName" class="form-control" />
+    </div>
+    <div>
+        <label>Şifre</label>
+        <input asp-for="Password" type="password" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Giriş</button>
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger">@ViewBag.Error</div>
+    }
+</form>
+<p>Hesabınız yok mu? <a asp-action="Register">Kayıt Ol</a></p>

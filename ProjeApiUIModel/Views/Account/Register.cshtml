@@ -1,0 +1,28 @@
+﻿@model RegisterViewModel
+
+<h2>Kayıt Ol</h2>
+ 
+<form asp-action="Register" method="post">
+    <div class="form-group">
+        <label>Kullanıcı Adı</label>
+        <input asp-for="UserName" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Email</label>
+        <input asp-for="Email" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>AdSoyad</label>
+        <input asp-for="AdSoyad" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Şifre</label>
+        <input asp-for="PassWord" type="password" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-success">Kayıt Ol</button>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="text-danger">Kayıt işlemi başarısız.</div>
+    }
+</form>
