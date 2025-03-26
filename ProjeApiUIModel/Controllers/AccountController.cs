@@ -10,7 +10,7 @@ namespace ProjeApiUIModel.Controllers
     {
         private readonly HttpClient _httpClient;
 
-        public AccountController(IHttpClientFactory httpClientFactory)
+        public AccountController(IHttpClientFactory httpClientFactory) 
         {
             _httpClient = httpClientFactory.CreateClient();
             _httpClient.BaseAddress = new Uri("https://localhost:7250/");
