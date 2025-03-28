@@ -16,10 +16,25 @@ builder.Services.AddDbContext<ApiContext>(options =>
 builder.Services.AddIdentity<User, Role>()
     .AddEntityFrameworkStores<ApiContext>()
     .AddDefaultTokenProviders();
+
+// AutoMapper yapýlandýrmasý
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 // Business Layer ve diðer servis kayýtlarý
 builder.Services.LoadBllLayerExtension(builder.Configuration);
+
+// CORS yapýlandýrmasý
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowMobileApp", policy =>
+    {
+        // Örneðin, UI projeniz http://localhost:7224 adresinde çalýþýyor
+        policy.WithOrigins("https://localhost:7224", "http://localhost:7224")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -35,10 +50,12 @@ if (app.Environment.IsDevelopment())
         c.RoutePrefix = string.Empty;
     });
 }
+
 app.UseHttpsRedirection();
 
-
+// CORS middleware'i ekleyin (AllowMobileApp politikasýyla)
 app.UseCors("AllowMobileApp");
+
 app.UseAuthentication();
 app.UseAuthorization();
 

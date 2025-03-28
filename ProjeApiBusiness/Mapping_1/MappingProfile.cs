@@ -16,6 +16,9 @@ namespace ProjeApiBusiness.Mapping_1
             CreateMap<UserDTO, User>()
                 .ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => src.PasswordHash));
             CreateMap<Category, CategoryDTO>().ReverseMap();
+            CreateMap<CategoryDTO, Category>()
+    .ForMember(dest => dest.CategoryId, opt => opt.Ignore());
+
 
         }
     }

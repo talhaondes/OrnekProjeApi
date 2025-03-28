@@ -26,7 +26,7 @@ namespace ProjeApiDal.Repository.Concrete
             _mapper = mapper;
         }
 
-        public async Task<ResponseDTO<TentityDTO>> Create(TentityDTO entity) 
+        public async Task<ResponseDTO<TentityDTO>> Create(TentityDTO entity)
         {
             try
             {
@@ -67,53 +67,47 @@ namespace ProjeApiDal.Repository.Concrete
             }
 
         }
-        public async Task<ResponseDTO<TentityDTO>> Delete(int id)
+        public virtual async Task<ResponseDTO<TentityDTO>> Delete(int id)
         {
             try
             {
-                var sil = typeof(Tentity);
-                var entityname = sil.Name;
-                var idproperty = sil.GetProperty(entityname + "Id") ?? sil.GetProperty("Id");
-                if (idproperty == null || idproperty.PropertyType != typeof(int))
-                {
-                    throw new Exception("Id property not found");
-                }
-                var entity = await _table.IgnoreQueryFilters().FirstOrDefaultAsync(x => (int)idproperty.GetValue(x)! == null);
-                if (entity == null)
+                var entityType = typeof(Tentity);
+                var entityName = entityType.Name;
+
+                var idProperty = entityType.GetProperty("Id") ?? entityType.GetProperty($"{entityName}Id");
+
+                if (idProperty == null || idProperty.PropertyType != typeof(int))
+                    throw new InvalidOperationException($"Entity {entityName} does not have an integer 'Id' or '{entityName}Id' property.");
+
+                var entityDb = await _table.IgnoreQueryFilters()
+                    .FirstOrDefaultAsync(e => EF.Property<int>(e, idProperty.Name) == id);
+
+                if (entityDb == null)
                 {
                     return new ResponseDTO<TentityDTO>
                     {
                         Data = null,
                         IsSuccess = false,
-                        Errors = new List<string> { "Entity not found" }
+                        Messages = "Entity Bulunamadı."
                     };
                 }
-                if (entity is EntityBase entityBase)
+
+                if (entityDb is EntityBase entityBase)
                 {
                     entityBase.IsDeleted = true;
                     entityBase.DeleteDate = DateTime.UtcNow;
                     entityBase.DeleteBy = "Admin";
-
                 }
 
                 await _apiContext.SaveChangesAsync();
-                var delete = _mapper.Map<TentityDTO>(entity);
-                return new ResponseDTO<TentityDTO>
-                {
-                    Data = delete,
-                    IsSuccess = true,
-                    Messages = "Silme Başaralı"
-                };
-            }
-            catch (DbUpdateException ex)
-            {
-                return new ResponseDTO<TentityDTO>
-                {
-                    Data = null,
-                    IsSuccess = false,
-                    Messages = $"Silme Başarısız {ex.Message}",
-                    Errors = new List<string> { ex.Message }
 
+                var deletedDto = _mapper.Map<TentityDTO>(entityDb);
+
+                return new ResponseDTO<TentityDTO>
+                {
+                    Data = deletedDto,
+                    IsSuccess = true,
+                    Messages = "Silme Başarılı"
                 };
             }
             catch (Exception e)
@@ -122,25 +116,29 @@ namespace ProjeApiDal.Repository.Concrete
                 {
                     Data = null,
                     IsSuccess = false,
-                    Messages = $"Silme Başarısız {e.Message}"
+                    Messages = $"İşlem Başarısız. {e.Message}"
                 };
             }
         }
 
-
-        public async Task<ResponseDTO<TentityDTO>> Get(int id)
+        public virtual async Task<ResponseDTO<TentityDTO>> Get(int id)
         {
-
             try
             {
-                var sil = typeof(Tentity);
-                var entityname = sil.Name;
-                var idproperty = sil.GetProperty(entityname + "Id") ?? sil.GetProperty("Id");
-                if (idproperty == null || idproperty.PropertyType != typeof(int))
-                {
-                    throw new Exception("Bu Ürünün Id'si ve ya İsmi yok");
-                }
-                var entity = await _table.IgnoreQueryFilters().FirstOrDefaultAsync(x => (int)idproperty.GetValue(x)! == id);
+                // Tentity türünü alıyoruz.
+                var entityType = typeof(Tentity);
+                var entityName = entityType.Name;
+
+                // "Id" veya "{entityName}Id" özelliğini arıyoruz.
+                var idProperty = entityType.GetProperty("Id") ?? entityType.GetProperty($"{entityName}Id");
+
+                // Eğer "Id" veya "{entityName}Id" özelliği yoksa veya tipi integer değilse, hata fırlatıyoruz.
+                if (idProperty == null || idProperty.PropertyType != typeof(int))
+                    throw new InvalidOperationException($"Entity {entityName} does not have an integer 'Id' or '{entityName}Id' property.");
+
+                // Veritabanında, verilen ID'ye sahip entity'yi arıyoruz (query filtrelerini yoksayarak).
+                var entity = await _table.IgnoreQueryFilters()
+                     .FirstOrDefaultAsync(e => EF.Property<int>(e, idProperty.Name) == id);
                 if (entity == null)
                 {
                     return new ResponseDTO<TentityDTO>
@@ -150,7 +148,10 @@ namespace ProjeApiDal.Repository.Concrete
                         Messages = "Entity Bulunamadı."
                     };
                 }
+
+                // 3) Entity’yi DTO’ya dönüştür
                 var dto = _mapper.Map<TentityDTO>(entity);
+
                 return new ResponseDTO<TentityDTO>
                 {
                     Data = dto,
@@ -160,14 +161,16 @@ namespace ProjeApiDal.Repository.Concrete
             }
             catch (Exception e)
             {
+                // Hata durumunda, loglamak isterseniz e.Message’i kullanabilirsiniz
                 return new ResponseDTO<TentityDTO>
                 {
                     Data = null,
                     IsSuccess = false,
-                    Messages = "İşlem Başarısız."
+                    Messages = $"İşlem Başarısız. {e.Message}"
                 };
             }
         }
+
         public async Task<ResponseDTO<List<TentityDTO>>> GetAll()
         {
             try
@@ -218,21 +221,22 @@ namespace ProjeApiDal.Repository.Concrete
 
             }
         }
-
-
-        public async Task<ResponseDTO<TentityDTO>> Update(TentityDTO entity, int id)//güncelleme methodu typeof kullanarak yapılacak
+        public virtual async Task<ResponseDTO<TentityDTO>> Update(TentityDTO entityDto, int id)
         {
             try
             {
-                var sil = typeof(Tentity);
-                var entityname = sil.Name;
-                var idproperty = sil.GetProperty(entityname + "Id") ?? sil.GetProperty("Id");
-                if (idproperty == null || idproperty.PropertyType != typeof(int))
-                {
-                    throw new Exception("Id property not found");
-                }
-                var entitydb = await _table.IgnoreQueryFilters().FirstOrDefaultAsync(x => (int)idproperty.GetValue(x)! == id);
-                if (entitydb == null)
+                var entityType = typeof(Tentity);
+                var entityName = entityType.Name;
+
+                var idProperty = entityType.GetProperty("Id") ?? entityType.GetProperty($"{entityName}Id");
+
+                if (idProperty == null || idProperty.PropertyType != typeof(int))
+                    throw new InvalidOperationException($"Entity {entityName} does not have an integer 'Id' or '{entityName}Id' property.");
+
+                var entityDb = await _table.IgnoreQueryFilters()
+                    .FirstOrDefaultAsync(e => EF.Property<int>(e, idProperty.Name) == id);
+
+                if (entityDb == null)
                 {
                     return new ResponseDTO<TentityDTO>
                     {
@@ -241,30 +245,24 @@ namespace ProjeApiDal.Repository.Concrete
                         Messages = "Entity Bulunamadı."
                     };
                 }
-                _mapper.Map(entity, entitydb);
-                if (entitydb is EntityBase entityBase)
+
+                _mapper.Map(entityDto, entityDb);
+
+                if (entityDb is EntityBase entityBase)
                 {
                     entityBase.UpdateDate = DateTime.UtcNow;
                     entityBase.UpdateBy = "Admin";
                 }
-                _apiContext.Entry(entitydb).CurrentValues.SetValues(entitydb);//
+
                 await _apiContext.SaveChangesAsync();
-                var update = _mapper.Map<TentityDTO>(entitydb);
+
+                var updatedDto = _mapper.Map<TentityDTO>(entityDb);
+
                 return new ResponseDTO<TentityDTO>
                 {
-                    Data = entity,
+                    Data = updatedDto,
                     IsSuccess = true,
                     Messages = "Güncelleme Başarılı"
-                };
-            }
-            catch (DbUpdateException ex)
-            {   
-                return new ResponseDTO<TentityDTO>
-                {
-                    Data = null,
-                    IsSuccess = false,
-                    Messages = $"Güncelleme Başarısız {ex.Message}",
-                    Errors = new List<string> { ex.Message }
                 };
             }
             catch (Exception e)
@@ -273,12 +271,12 @@ namespace ProjeApiDal.Repository.Concrete
                 {
                     Data = null,
                     IsSuccess = false,
-                    Messages = "İşlem Başarısız."
+                    Messages = $"İşlem Başarısız. {e.Message}"
                 };
             }
-
-
-
         }
+
+
+
     }
 }

@@ -1,0 +1,23 @@
+﻿@model ProjeApiModel.DTOs.Data.CategoryDTO
+
+@{
+    ViewData["Title"] = "Kategori Düzenle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<form asp-action="Edit" asp-route-id="@Model.CategoryId" method="post">
+    <input type="hidden" asp-for="CategoryId" />
+    <div class="mb-3">
+        <label asp-for="CategoryName" class="form-label"></label>
+        <input asp-for="CategoryName" class="form-control" />
+        <span asp-validation-for="CategoryName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="CategoryDescription" class="form-label"></label>
+        <textarea asp-for="CategoryDescription" class="form-control"></textarea>
+        <span asp-validation-for="CategoryDescription" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Güncelle</button>
+</form>

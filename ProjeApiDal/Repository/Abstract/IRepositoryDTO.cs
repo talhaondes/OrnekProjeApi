@@ -16,7 +16,7 @@ namespace ProjeApiDal.Repository.Abstract
         Task<ResponseDTO<TentityDTO>> Create(TentityDTO entity);
         Task<ResponseDTO<TentityDTO>> Update(TentityDTO entity, int id);
         Task<ResponseDTO<TentityDTO>> Delete(int id);
- 
+
 
     }
 }

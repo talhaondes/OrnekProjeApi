@@ -10,20 +10,23 @@ namespace ProjeApiUIModel.Controllers
     {
         private readonly HttpClient _httpClient;
 
-        public AccountController(IHttpClientFactory httpClientFactory) 
+        public AccountController(IHttpClientFactory httpClientFactory)
         {
             _httpClient = httpClientFactory.CreateClient();
             _httpClient.BaseAddress = new Uri("https://localhost:7250/");
         }
+
         public IActionResult Index()
         {
             return View();
         }
+
         [HttpGet]
         public IActionResult Login()
         {
             return View();
         }
+
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel loginViewModel)
         {
@@ -43,17 +46,19 @@ namespace ProjeApiUIModel.Controllers
 
                 HttpContext.Session.SetString("token", token);
 
-                return Redirect("https://localhost:7250/index.html");
+                return RedirectToAction("Index");
             }
 
             ModelState.AddModelError(string.Empty, "Kullanıcı adı veya şifre hatalı");
             return View(loginViewModel);
         }
+
         [HttpGet]
         public IActionResult Register()
         {
             return View();
         }
+
         [HttpPost]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
@@ -72,6 +77,13 @@ namespace ProjeApiUIModel.Controllers
 
             ModelState.AddModelError(string.Empty, "Kayıt başarısız.");
             return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Remove("token");
+            return RedirectToAction("Login");
         }
     }
 }
